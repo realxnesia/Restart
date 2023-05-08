@@ -13,6 +13,11 @@ struct OnboardingView: View {
   @State private var buttonOffset: CGFloat = 0 // merepresentasikan nilai asset untuk horizontal asset
   // ketika di drag nilainya akan berubah.
   @State private var isAnimating: Bool = false
+  @State private var imageOffset: CGSize = .zero
+  @State private var inidcatorOpacity: Double = 1.0
+  
+  
+  @State private var textTitle: String = "Share."
   
   var body: some View {
     ZStack {
@@ -22,10 +27,11 @@ struct OnboardingView: View {
         // MARK: - Header
         Spacer()
         VStack(spacing: 0) {
-          Text("Share.")
+          Text(textTitle)
             .font(.system(size: 60))
             .fontWeight(.heavy) //bold
             .foregroundColor(.white) //textColor
+            .transition(.opacity)
           Text(
                         """
                         It's not how much we give but
@@ -53,6 +59,11 @@ struct OnboardingView: View {
             ShapeColor: .white,
             ShapeOppacity: 0.2
           )
+          // paralaxm effect
+          .offset(x: imageOffset.width * -1) // dikali -1 untuk menciptakan efek berlawanan arah
+          .blur(radius: abs(imageOffset.width / 5)) // abs untuk mengilangkan value negative
+          .animation(.easeOut(duration: 1), value: imageOffset)
+          
           Image("character-1")
             .resizable()
             .scaledToFit()
@@ -62,8 +73,47 @@ struct OnboardingView: View {
               .easeOut(duration: 0.5),
               value: isAnimating
             )
+          //paralax animation
+            .offset(
+              x: imageOffset.width * 1.2, //accelerate movement
+              y: 0
+            )
+            .rotationEffect(.degrees(Double(imageOffset.width / 20)))
+            .gesture(
+              DragGesture()
+                .onChanged { gesture in
+                  if abs(imageOffset.width) <= 150 {
+                    imageOffset = gesture.translation
+                    withAnimation(.linear(duration: 0.25)) {
+                      inidcatorOpacity = 0
+                      textTitle = "Give."
+                    }
+                  }
+                }
+                .onEnded({ _ in
+                  imageOffset = .zero
+                  withAnimation(.linear(duration: 0.25)) {
+                    inidcatorOpacity = 1
+                    textTitle = "Share."
+                  }
+                })
+            )
+            .animation(.easeOut(duration: 1), value: imageOffset)
         }
+        .overlay(
+          Image(systemName: "arrow.left.and.right.circle")
+            .font(.system(size: 44, weight: .ultraLight))
+            .foregroundColor(.white)
+            .offset(y: 20)
+          //animation
+            .opacity(isAnimating ? 1 : 0)
+            .animation(.easeOut(duration: 1).delay(2), value: isAnimating)
+            .opacity(inidcatorOpacity)          ,
+          alignment: .bottom
+        )
         Spacer()
+        
+        // MARK: Footer
         ZStack {
           // (todo: Parts of the custom Button)
           
