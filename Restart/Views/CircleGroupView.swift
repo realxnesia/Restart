@@ -10,6 +10,7 @@ import SwiftUI
 struct CircleGroupView: View {
     @State var ShapeColor: Color // State merupakan property wrapper untuk read and write
     @State var ShapeOppacity: Double
+    @State private var isAnimating: Bool = false
     
     var body: some View {
         ZStack {
@@ -33,6 +34,17 @@ struct CircleGroupView: View {
                     height: 260,
                     alignment: .center
                 )
+        }
+        // Animation Blur and Scale Effect
+        .blur(radius: isAnimating ? 0 : 10)
+        .opacity(isAnimating ? 1 : 0)
+        .scaleEffect(isAnimating ? 1 : 0.5)
+        .animation(
+            Animation.easeOut(duration: 0.5),
+            value: isAnimating
+        )
+        .onAppear {
+            isAnimating = true
         }
     }
 }
